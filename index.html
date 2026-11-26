@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="ja">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="気象庁が発表した地震と各地の観測震度を地図で確認できます。">
+    <title>地震観測モニタ</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="/assets/monitor.css">
+    <script src="/assets/monitor.js" defer></script>
+</head>
+<body>
+    <main>
+        <header class="masthead">
+            <div>
+                <h1>地震観測モニタ</h1>
+                <p>気象庁発表の観測震度</p>
+            </div>
+            <div class="feed">
+                <p id="feed-status" role="status">地震情報を取得中</p>
+                <p id="last-checked"></p>
+            </div>
+        </header>
+
+        <div class="workspace">
+            <section class="map-panel" aria-labelledby="event-name">
+                <header class="event-header">
+                    <div class="maximum">
+                        <span>最大震度</span>
+                        <strong id="maximum" class="intensity" data-level="">—</strong>
+                    </div>
+                    <div class="event-summary">
+                        <div class="event-title">
+                            <h2 id="event-name">地震情報を取得中</h2>
+                            <span id="report-kind"></span>
+                        </div>
+                        <dl class="metrics">
+                            <div><dt>発生</dt><dd id="origin">—</dd></div>
+                            <div><dt>マグニチュード</dt><dd id="magnitude">—</dd></div>
+                            <div><dt>深さ</dt><dd id="depth">—</dd></div>
+                        </dl>
+                    </div>
+                </header>
+                <figure>
+                    <canvas id="map" role="img" aria-label="日本周辺の震央と地点別の観測震度"></canvas>
+                    <div class="map-tools">
+                        <button type="button" id="focus" disabled>震源周辺</button>
+                        <button type="button" id="national">全国</button>
+                    </div>
+                    <figcaption>
+                        <span><span class="epicenter" aria-hidden="true">×</span> 震央</span>
+                        <span>観測震度</span>
+                        <ol id="legend" aria-label="震度の凡例"></ol>
+                    </figcaption>
+                </figure>
+                <p id="map-note" class="map-note" role="status">選択した地震の観測点を表示します。</p>
+            </section>
+
+            <aside class="recent-panel" aria-labelledby="recent-title">
+                <div class="recent-header">
+                    <h2 id="recent-title">最近の地震</h2>
+                    <button type="button" id="latest" hidden>最新へ</button>
+                </div>
+                <ol id="events" class="events"></ol>
+                <p id="empty-events" class="empty">気象庁の地震情報を読み込んでいます。</p>
+            </aside>
+        </div>
+
+        <section class="observations" aria-labelledby="observation-title">
+            <div class="observations-header">
+                <div>
+                    <h2 id="observation-title">各地の観測震度</h2>
+                    <p id="report-time"></p>
+                </div>
+                <label id="search-box" hidden>地点名で絞り込み
+                    <input id="search" type="search" autocomplete="off" placeholder="例　富津">
+                </label>
+            </div>
+            <p id="observation-note" class="empty">地震を選ぶと、発表された観測震度が表示されます。</p>
+            <table id="observation-table" hidden>
+                <thead><tr><th scope="col">観測点・地域</th><th scope="col">震度</th></tr></thead>
+                <tbody id="observations"></tbody>
+            </table>
+        </section>
+
+        <footer>
+            <p>気象庁の地震発表後に更新します。時刻は日本時間です。</p>
+            <p>出典 <a href="https://www.jma.go.jp/bosai/map.html#contents=earthquake_map">気象庁「地震情報」</a>をもとに地図・一覧を作成
+                <span class="divider" aria-hidden="true">·</span>
+                背景地図 <a href="https://www.naturalearthdata.com/about/terms-of-use/">Natural Earth</a></p>
+        </footer>
+        <noscript>地震情報の表示には JavaScript が必要です。</noscript>
+    </main>
+</body>
+</html>

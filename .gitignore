@@ -1,0 +1,24 @@
+# Local Python environments and generated files
+/venv/
+/.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+/build/
+/dist/
+*.egg-info/
+
+# Local configuration
+.env
+.env.*
+!.env.example
+/.vscode/
+/.idea/
+.DS_Store
+Thumbs.db
+
+# Local station list from the earlier image-based monitor
+/stations.json
