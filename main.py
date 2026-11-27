@@ -14,7 +14,7 @@ from fastapi.staticfiles import StaticFiles
 
 ROOT = Path(__file__).resolve().parent
 JMA_FEED = "https://www.jma.go.jp/bosai/quake/data/"
-LIST_REFRESH_SECONDS = 60
+LIST_REFRESH_SECONDS = 30
 EVENT_LIMIT = 24
 INTENSITIES = ("1", "2", "3", "4", "5-", "5+", "6-", "6+", "7")
 REPORT_TITLES = {"震度速報", "震源・震度情報", "震源・震度に関する情報", "各地の震度に関する情報"}
@@ -104,6 +104,7 @@ class QuakeFeed:
     async def catalog(self):
         async with self.catalog_lock:
             if monotonic() >= self.next_check:
+                self.next_check = monotonic() + LIST_REFRESH_SECONDS
                 try:
                     self.events = catalog_entries(await self.read("list.json"))
                     revisions = {event["revision"] for event in self.events}
@@ -113,10 +114,14 @@ class QuakeFeed:
                 except (httpx.HTTPError, AttributeError, KeyError, TypeError, ValueError) as error:
                     logger.warning("JMA earthquake catalog unavailable: %s", error)
                     self.stale = True
-                self.next_check = monotonic() + (30 if self.stale else LIST_REFRESH_SECONDS)
             if self.checked_at is None:
                 raise HTTPException(503, "気象庁の地震情報を取得できません。")
-            return {"events": self.events, "checkedAt": self.checked_at, "stale": self.stale}
+            return {
+                "events": self.events,
+                "checkedAt": self.checked_at,
+                "stale": self.stale,
+                "refreshAfterMs": max(0, int((self.next_check - monotonic()) * 1000)),
+            }
 
     async def detail(self, event):
         revision = event["revision"]

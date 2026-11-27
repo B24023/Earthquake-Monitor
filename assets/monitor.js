@@ -20,6 +20,9 @@ let view = nationalView;
 let markers = [];
 let followsLatest = true;
 let detailRequest = 0;
+const refreshIntervalMs = 30_000;
+let refreshTimer;
+let refreshing = false;
 
 function intensityText(value) {
     return value?.replace("-", "弱").replace("+", "強") || "—";
@@ -249,8 +252,15 @@ async function selectEvent(event) {
 }
 
 async function refresh() {
+    if (refreshing) return;
+    refreshing = true;
+    window.clearTimeout(refreshTimer);
+    let refreshAt = performance.now() + refreshIntervalMs;
     try {
         const data = await json("/api/earthquakes");
+        if (Number.isFinite(data.refreshAfterMs)) {
+            refreshAt = performance.now() + Math.min(refreshIntervalMs, data.refreshAfterMs + 1);
+        }
         const status = find("feed-status");
         status.dataset.state = data.stale ? "stale" : "ready";
         status.textContent = data.stale ? "一覧の更新が停止しています" : "地震情報を取得済み";
@@ -276,14 +286,15 @@ async function refresh() {
         const selected = followsLatest ? catalog[0] : catalog.find(event => event.id === currentEvent?.id);
         if (!selected) followsLatest = true;
         const target = selected || catalog[0];
-        if (target.revision !== currentEvent?.revision || !currentDetails) await selectEvent(target);
+        if (target.revision !== currentEvent?.revision || !currentDetails) void selectEvent(target);
     } catch {
         const status = find("feed-status");
         status.dataset.state = "stale";
         status.textContent = catalog.length ? "一覧の更新が停止しています" : "地震情報を取得できません";
         find("empty-events").textContent = "取得できませんでした。自動で再接続します。";
     } finally {
-        window.setTimeout(refresh, 60_000);
+        refreshing = false;
+        refreshTimer = window.setTimeout(refresh, Math.max(250, refreshAt - performance.now()));
     }
 }
 
@@ -338,5 +349,8 @@ json("/assets/land.json").then(data => {
 }).catch(() => {
     mapFailed = true;
     find("map-note").textContent = mapNote();
+});
+document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) refresh();
 });
 refresh();
